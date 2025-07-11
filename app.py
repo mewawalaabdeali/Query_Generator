@@ -1,4 +1,4 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 from query_generator import generate_sql_query, execute_query
 
@@ -20,9 +20,19 @@ async def generate_sql(request: QueryRequest):
 async def execute_sql(request: QueryRequest):
     """Execute a given SQL query and return results."""
     sql_query = request.query
-    results = execute_query(sql_query)
-    if results is None:
-        return {"error": "Error executing query"}
+    try:
+        results = execute_query(sql_query)
+        if results is None:
+            raise HTTPException(status_code=500, detail = "Error executing query")
+        serialized_results = [dict(row._mapping) for row in results["results"]]
+        
+        return {
+            "results": serialized_results,
+            "optimization_tips": results["optimization_tips"]
+           
+           }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
     return {"results ": results["results"], "optimization_tips":results["optimization_tips"]}
 
 #Run the FASTAPI app

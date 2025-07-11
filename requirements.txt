@@ -21,3 +21,6 @@ tqdm
 python-dotenv
 loguru
 pytest
+
+streamlit
+sqlparse
